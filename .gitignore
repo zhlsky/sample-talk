@@ -8,3 +8,5 @@ build/
 
 .flutter-plugins
 *.iml
+.idea/
+.idea/workspace.xml
