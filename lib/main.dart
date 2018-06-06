@@ -20,18 +20,20 @@ class ChatScreen extends StatefulWidget {
   State createState() => ChatScreenState();
 }
 
-class ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _textController = TextEditingController();
-  final List<ChatMessage> _messages = <ChatMessage>[];
+class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  TextEditingController _textController = TextEditingController();
+  List<ChatMessage> _messages = <ChatMessage>[];
 
   void _handleSubmitted(String text) {
     _textController.clear();
-    ChatMessage message = new ChatMessage(
-      text: text,
-    );
+    ChatMessage message = ChatMessage(
+        text: text,
+        animationController: AnimationController(
+            duration: Duration(milliseconds: 300), vsync: this));
     setState(() {
       _messages.insert(0, message);
     });
+    message.animationController.forward();
   }
 
   Widget _buildTextComposer() {
@@ -43,8 +45,7 @@ class ChatScreenState extends State<ChatScreen> {
             child: TextField(
               controller: _textController,
               onSubmitted: _handleSubmitted,
-              decoration:
-                  new InputDecoration.collapsed(hintText: 'send message'),
+              decoration: InputDecoration.collapsed(hintText: 'send message'),
             ),
           ),
           Container(
@@ -70,12 +71,12 @@ class ChatScreenState extends State<ChatScreen> {
             child: ListView.builder(
           padding: EdgeInsets.all(8.0),
           reverse: true,
-          itemBuilder: (_, int index) => _messages[index],
+          itemBuilder: (_, index) => _messages[index],
           itemCount: _messages.length,
         )),
         Divider(height: 1.0),
         Container(
-          decoration: new BoxDecoration(
+          decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
           ),
           child: _buildTextComposer(),
@@ -88,32 +89,44 @@ class ChatScreenState extends State<ChatScreen> {
 const String _name = "hekaiyou";
 
 class ChatMessage extends StatelessWidget {
-  ChatMessage({this.text});
+  ChatMessage({
+    @required this.text,
+    @required this.animationController
+  });
 
   final String text;
+  final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            margin: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(child: new Text(_name[0])),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(_name, style: Theme.of(context).textTheme.subhead),
-              Container(
-                margin: const EdgeInsets.only(top: 5.0),
-                child: new Text(text),
-              )
-            ],
-          ),
-        ],
+
+    return SizeTransition(
+      sizeFactor: CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut
+      ),
+      axisAlignment: 0.0,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 10.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(right: 16.0),
+              child: CircleAvatar(child: Text(_name[0])),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(_name, style: Theme.of(context).textTheme.subhead),
+                Container(
+                  margin: EdgeInsets.only(top: 5.0),
+                  child: Text(text),
+                )
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
